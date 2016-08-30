@@ -1,0 +1,220 @@
+#!/system/bin/sh
+#
+#
+
+boost=1
+options=0
+helping=0
+
+CONF="/data/vTweaks/booster.db"
+
+FN=$(basename $0)
+
+if [ -z $CONF ]; then
+touch $CONF
+fi
+
+until [[ $1 != "-o" ]] && [[ $1 != "-h" ]]; do
+if [ $1 = "-o" ]; then
+options=1
+	if [ $helping = "1" ]; then
+	echo "ERROR"
+	exit
+	fi
+boost=0
+elif [ $1 = "-h" ]; then
+helping=1
+	if [ $options = "1" ]; then
+	echo "ERROR"
+	exit
+	fi
+boost=0
+fi
+
+if [ $options = "1" ]; then
+MEDIASERVER=$(cat $CONF | grep mediaserver | wc -l)
+if [ $MEDIASERVER = "1" ]; then
+ms=Disable
+elif [ $MEDIASERVER = "0" ]; then
+ms=Enable
+else
+db=Currupted
+fi
+
+if [ $dbc = "1" ]; then
+echo "ERROR! Database currupted!"
+sleep 2
+exit
+fi
+
+clear
+echo "Boost Options:"
+echo "";
+echo "1 = $ms kill mediaserver"
+echo ""
+echo "e = Exit"
+echo -n "->"
+read choice
+if [ $choice = 1 ]; then
+	if [ $MEDIASERVER = 1 ]; then
+	sed -i '/mediaserver/d' $CONF
+	sleep 1
+	elif [ $MEDIASERVER = 0 ]; then
+	echo "mediaserver" >> $CONF
+	sleep 1
+	fi
+elif [ $choice = e ]; then
+clear
+exit
+else
+echo "ERROR"
+sleep 1
+exit
+fi
+fi
+
+if [ $helping = "1" ]; then
+echo "USAGE: $FN [-oh]"
+echo "      -o --options"
+echo "      -h --help"
+exit
+fi
+
+done
+
+
+
+id=`id`; id=`echo ${id#*=}`; id=`echo ${id%%\(*}`; id=`echo ${id%% *}`	
+if [ "$id" != "0" ] && [ "$id" != "root" ]; then
+	sleep 1
+	echo "Failed to get 'Root Access'"
+	echo "Try typing 'su' before 'boost'"
+else
+
+mount -o remount,rw /data
+mount -o remount,rw rootfs
+
+MEDSER=$(cat /data/vTweaks/booster.db | grep mediaserver | wc -l)
+DEBUG=$(cat /data/vTweaks/booster.db | grep verbose | wc -l)
+
+#->RAM Free Identification
+free_process () {
+REALFREE=$(cat /proc/meminfo | grep MemFree | awk '{print $2}')
+FREE=$(($REALFREE / 1024))
+FULL=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
+OCCUPIED=$(($FULL - $REALFREE))
+CRITICAL=$(($FULL / 100 * 93))
+HEALTHY=$(($FULL / 100 * 50))
+MODERATE=$(($FULL / 100 * 77))
+
+if [ $OCCUPIED -gt $CRITICAL ]; then
+     CFREE="\e[0;31m$FREE\e[00;37;40m"
+else
+     CFREE="\e[0;32m$FREE\e[00;37;40m"
+fi
+}
+
+free_process
+
+#->RAM Usage Classification
+ram_usage () {
+if [ $OCCUPIED -lt $HEALTHY ]; then    #->Healthy
+RSTAT="\e[0;32mHealthy\e[00;37;40m"
+LVL="1"
+elif [ $OCCUPIED -lt $MODERATE ]; then #->Moderate
+RSTAT="\e[0;33mModerate\e[00;37;40m"
+LVL="2"
+elif [ $OCCUPIED -lt $CRITICAL ]; then #->Bad
+RSTAT="\e[0;31mBad\e[00;37;40m"
+LVL="3"
+elif [ $OCCUPIED -gt $CRITICAL ]; then #->Critical
+RSTAT="\e[0;35mCritical\e[00;37;40m"
+LVL="4"
+fi
+}
+
+ram_usage
+
+#->Main Boost Script
+clear
+sleep 1
+echo "'BOOST' your device
+by dropping caches to free up RAM."
+if [ $MEDSER = 1 ]; then
+echo "It also kills 'mediaserver' to save battery.
+(It may interrupt your Music Player when playing music)";
+fi
+sleep 2
+echo " ";
+echo "Current Free: $CFREE MiB";
+echo "$FREE" > /data/data/free1
+echo "Ram Usage: $RSTAT"
+sleep 1
+
+#->Skips Boosting if RAM Usage is Healthy
+if [ $LVL = 1 ]; then
+	echo "";
+	echo "Your Ram Usage is $RSTAT.
+	There is no need to free up RAM."
+	sleep 2
+	exit
+
+else
+
+echo "";
+echo -n "Boosting"
+sync
+sleep 1 
+echo -n "."
+echo "3" > /proc/sys/vm/drop_caches;
+sleep 1 
+echo -n "."
+echo "2" > /proc/sys/vm/drop_caches;
+sleep 1 
+echo -n "."
+echo ""
+echo "1" > /proc/sys/vm/drop_caches;
+sleep 1
+echo "3" > /proc/sys/vm/drop_caches;
+sleep 1
+echo ""
+
+#->Kill MediaServer
+if [ $MEDSER = 1 ]; then
+killall -9 android.process.media 2>/dev/null
+killall -9 mediaserver 2>/dev/null
+fi
+
+free_process
+ram_usage
+
+echo "Current Free: $CFREE MiB";
+echo "$FREE" > /data/data/free2
+echo "Ram Usage: $RSTAT"
+echo ""
+
+FREE1=$(cat /data/data/free1)
+FREE2=$(cat /data/data/free2)
+TOTAL=$(($FREE2 - $FREE1))
+
+sleep 1
+if [ "$TOTAL" = "0" ]; then
+	echo "Freed up \e[0;31m$TOTAL MiB\e[00;37;40m."
+	if [ "$TOTAL" -lt "0" ]; then
+		echo "Freed up \e[0;31m$TOTAL MiB\e[00;37;40m."
+	fi
+else
+	echo "Freed up \e[0;32m$TOTAL MiB\e[00;37;40m."
+fi
+
+if [ "$TOTAL" -gt "0" ]; then
+	echo "Successfully boosted your device"
+else
+	echo "\e[0;31mUnsuccessful. Nothing can be freed.\e[00;37;40m"
+fi
+
+rm /data/data/free1 2>/dev/null
+rm /data/data/free2 2>/dev/null
+
+fi;
+fi;
