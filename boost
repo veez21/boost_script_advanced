@@ -50,7 +50,7 @@ ms=Disable
 elif [ $MEDIASERVER = "0" ]; then
 ms=Enable
 else
-db=Currupted
+dbc=1
 fi
 
 if [ $dbc = "1" ]; then
