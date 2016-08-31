@@ -26,7 +26,7 @@ if [ -z $CONF ]; then
 touch $CONF
 fi
 
-until [[ $1 != "-o" ]] && [[ $1 != "-h" ]]; do
+until [[ $1 != "-o" ]] && [[ $1 != "-h" ]] && [[ $1 != "-*" ]]; do
 if [ $1 = "-o" ]; then
 options=1
 	if [ $helping = "1" ]; then
@@ -40,6 +40,12 @@ helping=1
 	echo "ERROR"
 	exit
 	fi
+boost=0
+elif [ $1 = "-*" ]; then
+helping=1
+boost=0
+else
+helping=1
 boost=0
 fi
 
