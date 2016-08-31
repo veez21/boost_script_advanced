@@ -55,7 +55,10 @@ fi
 
 if [ $dbc = "1" ]; then
 echo "ERROR! Database currupted!"
-sleep 2
+sleep 1
+echo "Recalibrating Database"
+sleep 1
+echo "mediaserver" > $CONF
 exit
 fi
 
@@ -63,6 +66,7 @@ clear
 echo "Boost Options:"
 echo "";
 echo "1 = $ms kill mediaserver"
+echo "2 = Recalibrate Database
 echo ""
 echo "e = Exit"
 echo -n "->"
@@ -75,6 +79,9 @@ if [ $choice = 1 ]; then
 	echo "mediaserver" >> $CONF
 	sleep 1
 	fi
+elif [ $choice = 2 ]; then
+        echo "mediaserver" > $CONF 2>/dev/null
+        sleep 1
 elif [ $choice = e ]; then
 clear
 exit
