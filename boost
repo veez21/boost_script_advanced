@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # Boost Script by veez21
 # Copyright (C) 2016 veez21 @ XDA Developers
-#=======================================================================#
+#========================================================================================================#
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -11,8 +11,7 @@
 #  GNU General Public License for more details.
 #  You should have received a copy of the GNU General Public License along with this program. 
 #  If not, see <http://www.gnu.org/licenses/>.
-#=======================================================================#
- 
+#========================================================================================================#
 
 boost=1
 options=0
@@ -41,12 +40,12 @@ helping=1
 	exit
 	fi
 boost=0
-elif [ $1 = "-*" ]; then
-helping=1
-boost=0
+elif [ $1 = "-*" ]; then     # Note that this should be the last 'elif'
+	helping=1
+	boost=0
 else
-helping=1
-boost=0
+	helping=1
+	boost=0
 fi
 
 if [ $options = "1" ]; then
@@ -129,7 +128,7 @@ FREE=$(($REALFREE / 1024))
 FULL=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
 OCCUPIED=$(($FULL - $REALFREE))
 CRITICAL=$(($FULL / 100 * 93))
-HEALTHY=$(($FULL / 100 * 50))
+HEALTHY=$(($FULL / 100 * 52))
 MODERATE=$(($FULL / 100 * 77))
 
 if [ $OCCUPIED -gt $CRITICAL ]; then
@@ -235,7 +234,7 @@ fi
 if [ "$TOTAL" -gt "0" ]; then
 	echo "Successfully boosted your device"
 else
-	echo "\e[0;31mUnsuccessful. Nothing can be freed.\e[00;37;40m"
+	echo "\e[0;32mYou're RAM is good\e[00;37;40m. Nothing can be freed."
 fi
 
 rm /data/data/free1 2>/dev/null
