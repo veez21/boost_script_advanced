@@ -12,6 +12,8 @@
 #  You should have received a copy of the GNU General Public License along with this program. 
 #  If not, see <http://www.gnu.org/licenses/>.
 #========================================================================================================#
+# 
+# Put this on '/system/bin/' or '/system/xbin' or just executing this on any dir as long as the perms are met (755) 
 
 boost=1
 options=0
